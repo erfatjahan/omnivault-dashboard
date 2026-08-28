@@ -4,13 +4,16 @@ import { toast } from "react-toastify";
 
 export const login = createAsyncThunk(
   "auth/login",
-  async ({ email, password }, thunkAPI) => {
+  async (formData, thunkAPI) => {
     try {
-      const res = await axiosInstance.post("/auth/login", { email, password });
+      const res = await axiosInstance.post("/auth/login", formData);
       toast.success(res.data.message || "Login Successful!");
       return res.data;
     } catch (error) {
-      const message = error.response?.data?.message || "Login failed.";
+      const message =
+        error.response?.data?.message ||
+        error.message ||
+        "Login failed. Invalid credentials.";
       toast.error(message);
       return thunkAPI.rejectWithValue(message);
     }
@@ -166,7 +169,7 @@ const authSlice = createSlice({
       })
       .addCase(getUser.rejected, (state) => {
         state.loading = false;
-        // যদি লগইন স্টেট অলরেডি সেট থাকে, তবে রিসেট করবে না
+     
         if (!state.user) {
           state.isAuthenticated = false;
           state.user = null;
