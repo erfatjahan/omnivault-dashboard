@@ -1,7 +1,6 @@
 import React from "react";
 import {
   Wallet,
-  PackageCheck,
   TrendingUp,
   AlertTriangle,
   BarChart4,
@@ -19,6 +18,11 @@ const MiniSummary = () => {
     lowStockProducts = 0,
     newUsersThisMonth = 0,
   } = useSelector((state) => state.admin || {});
+  const lowStockCount = Array.isArray(lowStockProducts)
+    ? lowStockProducts.length
+    : typeof lowStockProducts === "object" && lowStockProducts !== null
+    ? Number(lowStockProducts.stock ?? lowStockProducts.count ?? 1)
+    : Number(lowStockProducts || 0);
 
   const summaryCards = [
     {
@@ -30,7 +34,7 @@ const MiniSummary = () => {
     },
     {
       title: "Today's Revenue",
-      value: `৳${Number(todayRevenue).toLocaleString()}`,
+      value: `৳${Number(todayRevenue || 0).toLocaleString()}`,
       icon: TrendingUp,
       color: "from-blue-500/10 to-blue-500/5 text-blue-600 dark:text-blue-400 border-blue-500/20",
       badge: "Live",
@@ -40,18 +44,18 @@ const MiniSummary = () => {
       value: `৳${formatNumber(currentMonthSales)}`,
       icon: BarChart4,
       color: "from-[#9c5b6f]/10 to-[#9c5b6f]/5 text-[#9c5b6f] dark:text-[#e4a8b8] border-[#9c5b6f]/20",
-      badge: revenueGrowth || "+0%",
+      badge: typeof revenueGrowth === "object" ? "0%" : revenueGrowth || "+0%",
     },
     {
       title: "Low Stock Items",
-      value: lowStockProducts,
+      value: lowStockCount,
       icon: AlertTriangle,
       color: "from-amber-500/10 to-amber-500/5 text-amber-600 dark:text-amber-400 border-amber-500/20",
       badge: "Needs action",
     },
     {
       title: "New Users",
-      value: newUsersThisMonth,
+      value: typeof newUsersThisMonth === "object" ? 0 : Number(newUsersThisMonth || 0),
       icon: UserPlus,
       color: "from-purple-500/10 to-purple-500/5 text-purple-600 dark:text-purple-400 border-purple-500/20",
       badge: "This month",
@@ -65,7 +69,7 @@ const MiniSummary = () => {
         return (
           <div
             key={idx}
-            className={`p-5 rounded-3xl bg-white dark:bg-[#150d11] border border-slate-200/80 dark:border-white/10 shadow-xs flex flex-col justify-between space-y-4 hover:-translate-y-0.5 transition-all`}
+            className="p-5 rounded-3xl bg-white dark:bg-[#150d11] border border-slate-200/80 dark:border-white/10 shadow-xs flex flex-col justify-between space-y-4 hover:-translate-y-0.5 transition-all"
           >
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
