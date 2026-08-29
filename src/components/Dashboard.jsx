@@ -8,13 +8,14 @@ import MonthlySalesChart from "./dashboard-components/MonthlySalesChart";
 import OrdersChart from "./dashboard-components/OrdersChart";
 import TopProductsChart from "./dashboard-components/TopProductsChart";
 import { LayoutDashboard } from "lucide-react";
-import { fetchDashboardStats } from "../store/slices/adminSlice";
+import { fetchDashboardStats, fetchAllUsers } from "../store/slices/adminSlice";
 
 const Dashboard = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
     dispatch(fetchDashboardStats());
+    dispatch(fetchAllUsers());
   }, [dispatch]);
 
   return (
