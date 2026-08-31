@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { axiosInstance } from "../../lib/axios";
 import { toast } from "react-toastify";
@@ -8,6 +9,12 @@ export const login = createAsyncThunk(
     try {
       const res = await axiosInstance.post("/auth/login", formData);
       toast.success(res.data.message || "Login Successful!");
+      
+      // টোকেন লোকাল স্টোরেজে সংরক্ষণ
+      if (res.data.token) {
+        localStorage.setItem("token", res.data.token);
+      }
+      
       return res.data;
     } catch (error) {
       const message =
@@ -40,10 +47,12 @@ export const logout = createAsyncThunk(
     try {
       const res = await axiosInstance.get("/auth/logout");
       toast.success(res.data.message || "Logged out successfully!");
+      localStorage.removeItem("token");
       return res.data;
     } catch (error) {
       const message = error.response?.data?.message || "Logout failed.";
       toast.error(message);
+      localStorage.removeItem("token");
       return thunkAPI.rejectWithValue(message);
     }
   }
@@ -156,6 +165,7 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.user = null;
         state.error = action.payload;
+        localStorage.removeItem("token");
       })
 
       // Get User
@@ -169,7 +179,6 @@ const authSlice = createSlice({
       })
       .addCase(getUser.rejected, (state) => {
         state.loading = false;
-     
         if (!state.user) {
           state.isAuthenticated = false;
           state.user = null;

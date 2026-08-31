@@ -7,3 +7,15 @@ export const axiosInstance = axios.create({
       : "https://omnivault-backend-83uu.onrender.com/api/v1",
   withCredentials: true,
 });
+axiosInstance.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
