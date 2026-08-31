@@ -9,13 +9,11 @@ export const login = createAsyncThunk(
     try {
       const res = await axiosInstance.post("/auth/login", formData);
       toast.success(res.data.message || "Login Successful!");
-      
-      // টোকেন লোকাল স্টোরেজে সংরক্ষণ
-      if (res.data.token) {
+      if (res.data?.token) {
         localStorage.setItem("token", res.data.token);
       }
-      
-      return res.data;
+
+      return res.data?.user || res.data;
     } catch (error) {
       const message =
         error.response?.data?.message ||
@@ -32,15 +30,15 @@ export const getUser = createAsyncThunk(
   async (_, thunkAPI) => {
     try {
       const res = await axiosInstance.get("/auth/me");
-      return res.data;
+      return res.data?.user || res.data;
     } catch (error) {
+      localStorage.removeItem("token");
       return thunkAPI.rejectWithValue(
         error.response?.data?.message || "Session expired."
       );
     }
   }
 );
-
 export const logout = createAsyncThunk(
   "auth/logout",
   async (_, thunkAPI) => {
@@ -68,7 +66,7 @@ export const updateProfile = createAsyncThunk(
         },
       });
       toast.success(res.data.message || "Profile updated successfully!");
-      return res.data;
+      return res.data?.user || res.data;
     } catch (error) {
       const message =
         error.response?.data?.message || "Failed to update profile.";
@@ -77,7 +75,6 @@ export const updateProfile = createAsyncThunk(
     }
   }
 );
-
 export const updatePassword = createAsyncThunk(
   "auth/updatePassword",
   async ({ currentPassword, newPassword, confirmNewPassword }, thunkAPI) => {
@@ -88,7 +85,7 @@ export const updatePassword = createAsyncThunk(
         confirmNewPassword,
       });
       toast.success(res.data.message || "Password updated successfully!");
-      return res.data;
+      return res.data?.user || res.data;
     } catch (error) {
       const message =
         error.response?.data?.message || "Failed to update password.";
@@ -97,7 +94,6 @@ export const updatePassword = createAsyncThunk(
     }
   }
 );
-
 export const forgotPassword = createAsyncThunk(
   "auth/forgotPassword",
   async (email, thunkAPI) => {
@@ -118,12 +114,12 @@ export const resetPassword = createAsyncThunk(
   "auth/resetPassword",
   async ({ token, password, confirmPassword }, thunkAPI) => {
     try {
-      const res = await axiosInstance.put(`/auth/resetPassword/${token}`, {
+      const res = await axiosInstance.put(`/auth/password/reset/${token}`, {
         password,
         confirmPassword,
       });
       toast.success(res.data.message || "Password reset successfully!");
-      return res.data;
+      return res.data?.user || res.data;
     } catch (error) {
       const message =
         error.response?.data?.message || "Failed to reset password.";
@@ -158,7 +154,7 @@ const authSlice = createSlice({
       .addCase(login.fulfilled, (state, action) => {
         state.loading = false;
         state.isAuthenticated = true;
-        state.user = action.payload?.user || action.payload?.data?.user || action.payload;
+        state.user = action.payload?.user || action.payload;
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
@@ -175,18 +171,22 @@ const authSlice = createSlice({
       .addCase(getUser.fulfilled, (state, action) => {
         state.loading = false;
         state.isAuthenticated = true;
-        state.user = action.payload?.user || action.payload?.data?.user || action.payload;
+        state.user = action.payload?.user || action.payload;
       })
-      .addCase(getUser.rejected, (state) => {
+      .addCase(getUser.rejected, (state, action) => {
         state.loading = false;
-        if (!state.user) {
-          state.isAuthenticated = false;
-          state.user = null;
-        }
+        state.isAuthenticated = false;
+        state.user = null;
+        state.error = action.payload;
       })
 
       // Logout
       .addCase(logout.fulfilled, (state) => {
+        state.loading = false;
+        state.isAuthenticated = false;
+        state.user = null;
+      })
+      .addCase(logout.rejected, (state) => {
         state.loading = false;
         state.isAuthenticated = false;
         state.user = null;
@@ -198,7 +198,7 @@ const authSlice = createSlice({
       })
       .addCase(updateProfile.fulfilled, (state, action) => {
         state.isUpdatingProfile = false;
-        state.user = action.payload?.user || action.payload?.data?.user || action.payload;
+        state.user = action.payload?.user || action.payload;
       })
       .addCase(updateProfile.rejected, (state, action) => {
         state.isUpdatingProfile = false;
@@ -236,7 +236,7 @@ const authSlice = createSlice({
       .addCase(resetPassword.fulfilled, (state, action) => {
         state.loading = false;
         state.isAuthenticated = true;
-        state.user = action.payload?.user || action.payload?.data?.user || action.payload;
+        state.user = action.payload?.user || action.payload;
       })
       .addCase(resetPassword.rejected, (state, action) => {
         state.loading = false;
