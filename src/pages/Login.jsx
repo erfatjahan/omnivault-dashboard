@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff, ShieldCheck, ArrowRight, Loader2 } from "lucide-react";
@@ -7,11 +7,16 @@ import { login } from "../store/slices/authSlice";
 const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { loading } = useSelector((state) => state.auth || {});
+  const { loading, isAuthenticated } = useSelector((state) => state.auth || {});
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    setEmail("");
+    setPassword("");
+  }, [isAuthenticated]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -21,7 +26,9 @@ const Login = () => {
       .unwrap()
       .then((data) => {
         console.log("Login Success Data:", data);
-        navigate("/"); // সরাসরি ড্যাশবোর্ডে পাঠাবে
+        setEmail("");
+        setPassword("");
+        navigate("/");
       })
       .catch((err) => {
         console.error("Login Failed:", err);
@@ -44,7 +51,7 @@ const Login = () => {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} autoComplete="off" className="space-y-4">
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-rose-200/60 mb-1.5">
               Email Address
@@ -55,7 +62,9 @@ const Login = () => {
               </div>
               <input
                 type="email"
+                name="admin_email"
                 required
+                autoComplete="off"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@example.com"
@@ -74,7 +83,9 @@ const Login = () => {
               </div>
               <input
                 type={showPassword ? "text" : "password"}
+                name="admin_password"
                 required
+                autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
