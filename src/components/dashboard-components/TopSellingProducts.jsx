@@ -3,34 +3,9 @@ import { useSelector } from "react-redux";
 import { Package, TrendingUp } from "lucide-react";
 
 const TopSellingProducts = () => {
-  const { topSellingProducts = [] } = useSelector((state) => state.admin || {});
-
-  const sampleProducts = [
-    {
-      id: 1,
-      name: "Wireless Noise-Canceling Headphones",
-      category: "Electronics",
-      price: 4500,
-      totalSold: 140,
-    },
-    {
-      id: 2,
-      name: "Ergonomic Office Chair",
-      category: "Home & Garden",
-      price: 12500,
-      totalSold: 98,
-    },
-    {
-      id: 3,
-      name: "Sports Running Shoes",
-      category: "Sports",
-      price: 3200,
-      totalSold: 85,
-    },
-  ];
-
-  const productList =
-    topSellingProducts.length > 0 ? topSellingProducts : sampleProducts;
+  const { topSellingProducts = [], loading = false } = useSelector(
+    (state) => state.admin || {}
+  );
 
   return (
     <div className="p-6 rounded-3xl bg-white dark:bg-[#150d11] border border-slate-200/80 dark:border-white/10 shadow-xs space-y-4">
@@ -39,7 +14,9 @@ const TopSellingProducts = () => {
           <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
             Top Selling Products
           </h3>
-          <p className="text-[11px] text-slate-400">Best performing inventory items</p>
+          <p className="text-[11px] text-slate-400">
+            Real-time best performing inventory items
+          </p>
         </div>
       </div>
 
@@ -54,22 +31,62 @@ const TopSellingProducts = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-white/5 text-xs">
-            {productList.map((prod, idx) => (
-              <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-white/[0.02]">
-                <td className="py-3 px-4 font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                  <Package className="w-4 h-4 text-[#9c5b6f]" />
-                  <span className="truncate max-w-xs">{prod.name}</span>
-                </td>
-                <td className="py-3 px-4 text-slate-500">{prod.category || "General"}</td>
-                <td className="py-3 px-4 font-black text-slate-900 dark:text-white">
-                  ৳{Number(prod.price || 0).toLocaleString()}
-                </td>
-                <td className="py-3 px-4 text-right font-bold text-emerald-600 dark:text-emerald-400 flex items-center justify-end gap-1">
-                  <TrendingUp className="w-3.5 h-3.5" />
-                  {prod.totalSold || prod.sales || 0}
+            {loading ? (
+              <tr>
+                <td colSpan="4" className="py-6 text-center text-slate-400">
+                  Loading sales data...
                 </td>
               </tr>
-            ))}
+            ) : topSellingProducts.length > 0 ? (
+              topSellingProducts.map((prod, idx) => {
+                const title =
+                  prod.name || prod.title || prod.product_name || "Unnamed Product";
+                const category =
+                  prod.category?.name ||
+                  prod.category ||
+                  prod.category_name ||
+                  "General";
+                const price = Number(prod.price || 0);
+                const unitsSold = Number(
+                  prod.totalSold ??
+                    prod.soldCount ??
+                    prod.unitsSold ??
+                    prod.total_sold ??
+                    prod.sales ??
+                    0
+                );
+
+                return (
+                  <tr
+                    key={prod.id || prod._id || prod.product_id || idx}
+                    className="hover:bg-slate-50/50 dark:hover:bg-white/[0.02] transition-colors"
+                  >
+                    <td className="py-3 px-4 font-bold text-slate-800 dark:text-white">
+                      <div className="flex items-center gap-2">
+                        <Package className="w-4 h-4 text-[#9c5b6f] shrink-0" />
+                        <span className="truncate max-w-xs">{title}</span>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4 text-slate-500">{category}</td>
+                    <td className="py-3 px-4 font-black text-slate-900 dark:text-white">
+                      ৳{price.toLocaleString()}
+                    </td>
+                    <td className="py-3 px-4 text-right font-bold text-emerald-600 dark:text-emerald-400">
+                      <div className="flex items-center justify-end gap-1">
+                        <TrendingUp className="w-3.5 h-3.5 shrink-0" />
+                        <span>{unitsSold.toLocaleString()}</span>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
+            ) : (
+              <tr>
+                <td colSpan="4" className="py-8 text-center text-slate-400 text-xs">
+                  No sales recorded yet. Completed orders will appear here automatically.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
