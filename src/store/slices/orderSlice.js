@@ -2,7 +2,6 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { axiosInstance } from "../../lib/axios";
 import { toast } from "react-toastify";
 
-// ১. সমস্ত অর্ডার ফেচ করা (অ্যাডমিন)
 export const fetchAdminOrders = createAsyncThunk(
   "order/fetchAdminOrders",
   async (_, thunkAPI) => {
@@ -17,10 +16,7 @@ export const fetchAdminOrders = createAsyncThunk(
   }
 );
 
-// অন্যান্য কম্পোনেন্টের সাপোর্টের জন্য একই থাঙ্ক এক্সপোর্ট
 export const fetchAllOrders = fetchAdminOrders;
-
-// ২. অর্ডার স্ট্যাটাস আপডেট
 export const updateOrderStatus = createAsyncThunk(
   "order/updateOrderStatus",
   async ({ orderId, status }, thunkAPI) => {
@@ -39,8 +35,6 @@ export const updateOrderStatus = createAsyncThunk(
     }
   }
 );
-
-// ৩. অর্ডার ডিলিট
 export const deleteOrder = createAsyncThunk(
   "order/deleteOrder",
   async (orderId, thunkAPI) => {
