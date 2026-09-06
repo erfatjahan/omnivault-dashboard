@@ -53,10 +53,9 @@ function App() {
         return <Dashboard />;
     }
   };
-
   const isAdmin =
     isAuthenticated &&
-    (user?.role?.toLowerCase() === "admin" || user?.role === "Admin");
+    ["admin", "superadmin"].includes(user?.role?.toLowerCase());
 
   if (loading && !user) {
     return (
@@ -75,8 +74,6 @@ function App() {
         />
         <Route path="/password/forgot" element={<ForgotPassword />} />
         <Route path="/password/reset/:token" element={<ResetPassword />} />
-
-        {/* Protected Admin Route */}
         <Route
           path="/"
           element={
