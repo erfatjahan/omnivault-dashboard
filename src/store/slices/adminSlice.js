@@ -7,7 +7,6 @@ export const fetchDashboardStats = createAsyncThunk(
   async (_, thunkAPI) => {
     try {
       const res = await axiosInstance.get("/admin/stats");
-    
       return res.data?.stats || res.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(
@@ -16,6 +15,7 @@ export const fetchDashboardStats = createAsyncThunk(
     }
   }
 );
+
 export const fetchAllUsers = createAsyncThunk(
   "admin/fetchAllUsers",
   async (_, thunkAPI) => {
@@ -30,11 +30,29 @@ export const fetchAllUsers = createAsyncThunk(
   }
 );
 
-export const updateUserRole = createAsyncThunk(
-  "admin/updateUserRole",
-  async ({ userId, role }, thunkAPI) => {
+export const sendRoleUpdateOTP = createAsyncThunk(
+  "admin/sendRoleUpdateOTP",
+  async (userId, thunkAPI) => {
     try {
-      const res = await axiosInstance.put(`/admin/user/${userId}/role`, { role });
+      const res = await axiosInstance.post(`/admin/user/${userId}/send-role-otp`);
+      toast.success(res.data.message || "OTP sent successfully to your email!");
+      return userId;
+    } catch (error) {
+      const message = error.response?.data?.message || "Failed to send OTP.";
+      toast.error(message);
+      return thunkAPI.rejectWithValue(message);
+    }
+  }
+);
+
+export const updateUserRoleWithOTP = createAsyncThunk(
+  "admin/updateUserRoleWithOTP",
+  async ({ userId, role, otp }, thunkAPI) => {
+    try {
+      const res = await axiosInstance.put(`/admin/user/${userId}/update-role`, {
+        role,
+        otp,
+      });
       toast.success(res.data.message || "User role updated successfully!");
       return { userId, role };
     } catch (error) {
@@ -130,8 +148,8 @@ export const adminSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Update Role
-      .addCase(updateUserRole.fulfilled, (state, action) => {
+      // Update Role with OTP (Fulfilled)
+      .addCase(updateUserRoleWithOTP.fulfilled, (state, action) => {
         const { userId, role } = action.payload;
         const index = state.users.findIndex(
           (u) => String(u.id || u._id) === String(userId)
