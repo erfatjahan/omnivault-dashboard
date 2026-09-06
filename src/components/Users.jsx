@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import Header from "./Header";
 import avatarFallback from "../assets/avatar.jpg";
-import { fetchAllUsers, updateUserRole, deleteUser } from "../store/slices/adminSlice";
+import { fetchAllUsers, sendRoleUpdateOTP, updateUserRoleWithOTP, deleteUser } from "../store/slices/adminSlice";
 
 const Users = () => {
   const dispatch = useDispatch();
@@ -36,9 +36,20 @@ const Users = () => {
   });
 
   const handleRoleChange = async (userId, newRole) => {
-    const res = await dispatch(updateUserRole({ userId, role: newRole }));
-    if (updateUserRole.fulfilled?.match(res)) {
-      dispatch(fetchAllUsers()); // 👈 রোল পরিবর্তনের পর সাথে সাথে স্টেট রিফ্রেশ
+    if (!window.confirm(`Are you sure you want to change this user's role to ${newRole}? An OTP will be sent to your SuperAdmin email.`)) {
+      return;
+    }
+    const otpRes = await dispatch(sendRoleUpdateOTP(userId));
+    
+    if (sendRoleUpdateOTP.fulfilled.match(otpRes)) {
+      const otp = prompt("Enter the 6-digit OTP sent to your SuperAdmin email:");
+      
+      if (otp) {
+        const updateRes = await dispatch(updateUserRoleWithOTP({ userId, role: newRole, otp }));
+        if (updateUserRoleWithOTP.fulfilled.match(updateRes)) {
+          dispatch(fetchAllUsers()); 
+        }
+      }
     }
   };
 
@@ -46,7 +57,7 @@ const Users = () => {
     if (window.confirm("Are you sure you want to remove this user?")) {
       const res = await dispatch(deleteUser(userId));
       if (deleteUser.fulfilled?.match(res) || !res?.error) {
-        dispatch(fetchAllUsers()); // 👈 ডিলিট হওয়ার সাথে সাথে তালিকা রিফ্রেশ
+        dispatch(fetchAllUsers());
       }
     }
   };
