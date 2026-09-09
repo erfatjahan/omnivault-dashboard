@@ -15,6 +15,11 @@ const Users = () => {
   const dispatch = useDispatch();
   const { users = [], totalUsersCount = 0 } = useSelector((state) => state.admin || state.user || {});
 
+  const authState = useSelector((state) => state.auth || {});
+  const currentUser = authState.user || authState.authUser || null;
+  const currentRole = currentUser?.role ? String(currentUser.role).toLowerCase() : "";
+  const isSuperAdmin = currentRole === "superadmin";
+
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("All");
 
@@ -36,6 +41,11 @@ const Users = () => {
   });
 
   const handleRoleChange = async (userId, newRole) => {
+    if (!isSuperAdmin) {
+      alert("Access Denied! Only SuperAdmin can change user roles.");
+      return;
+    }
+
     if (!window.confirm(`Are you sure you want to change this user's role to ${newRole}? An OTP will be sent to your SuperAdmin email.`)) {
       return;
     }
@@ -180,14 +190,21 @@ const Users = () => {
                           </span>
                         </td>
                         <td className="py-4 px-6">
-                          <select
-                            value={roleName}
-                            onChange={(e) => handleRoleChange(id, e.target.value)}
-                            className="text-xs font-bold py-1.5 px-2.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#9c5b6f] cursor-pointer"
-                          >
-                            <option value="User" className="dark:bg-[#150d11]">User</option>
-                            <option value="Admin" className="dark:bg-[#150d11]">Admin</option>
-                          </select>
+
+                          {isSuperAdmin ? (
+                            <select
+                              value={roleName}
+                              onChange={(e) => handleRoleChange(id, e.target.value)}
+                              className="text-xs font-bold py-1.5 px-2.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#9c5b6f] cursor-pointer"
+                            >
+                              <option value="User" className="dark:bg-[#150d11]">User</option>
+                              <option value="Admin" className="dark:bg-[#150d11]">Admin</option>
+                            </select>
+                          ) : (
+                            <span className="text-xs text-slate-400 dark:text-slate-500 italic font-medium">
+                              Restricted (SuperAdmin only)
+                            </span>
+                          )}
                         </td>
                         <td className="py-4 px-6 text-right">
                           <button
